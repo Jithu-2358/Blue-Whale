@@ -206,7 +206,7 @@ function vitePluginStorageProxy(): Plugin {
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
 
 export default defineConfig({
-  plugins,
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -221,6 +221,18 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    port: 5173,
+    host: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080", // ← Spring Boot backend
+        changeOrigin: true,
+      },
+      "/photos": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+    },
     port: 3000,
     strictPort: false, // Will find next available port if 3000 is busy
     host: true,

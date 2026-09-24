@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: jdbc:postgresql://dpg-daqdet8u01pc73fpamg0-a/bluewhale_rezl
+    username: bluewhale2
+    password: oPt3y3MkttmCPwDSiTxBv7WgwqxbNmJd
     driver-class-name: org.postgresql.Driver
 
   jpa:

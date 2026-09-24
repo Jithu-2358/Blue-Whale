@@ -225,11 +225,11 @@ export default defineConfig({
     host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8080", // ← Spring Boot backend
+        target: "https://bluewhale-download-apk-pakm.onrender.com", // ← Spring Boot backend
         changeOrigin: true,
       },
       "/photos": {
-        target: "http://localhost:8080",
+        target: "https://bluewhale-download-apk-pakm.onrender.com",
         changeOrigin: true,
       },
     },
